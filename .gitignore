@@ -1,0 +1,9 @@
+.env
+.test.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+!.env.example
+!.env.template
