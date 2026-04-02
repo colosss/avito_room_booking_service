@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Sequence
 from uuid import UUID
-from datetime import datetime
+from datetime import date as date_type
 from src.core.domain.models import (
     User,
     Room,
@@ -21,6 +21,8 @@ class AbstractUserRepository(ABC):
     @abstractmethod
     async def create(self, email: str, role: str, hashed_password: Optional[str])->User: ...
 
+    @abstractmethod
+    async def get_or_create_dummy(self, user_id: UUID, role: str)->User: ...
 
 class AbstractRoomRepository(ABC):
 
@@ -51,7 +53,7 @@ class AbstractSlotRepository(ABC):
     async def get_by_id(self, slot_id: UUID)->Optional[Slot]: ...
 
     @abstractmethod
-    async def get_available_by_room_and_date(self, room_id: UUID, date: datetime)->Schedule: ...
+    async def get_available_by_room_and_date(self, room_id: UUID, date: date_type)->Schedule: ...
 
 
 class AbstractBookingRepository(ABC):

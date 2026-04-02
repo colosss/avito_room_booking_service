@@ -1,8 +1,9 @@
 from sqlalchemy.orm import Mapped, mapped_column
 from src.infrastructure.database.base import Base
-from sqlalchemy import String, Integer, ForeignKey, DateTime, func, Enum, ARRAY, Text
+from sqlalchemy import String, Integer, ForeignKey, DateTime, func, ARRAY, Text, Index
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 import uuid
+from sqlalchemy.sql.expression import text
 
 class User(Base):
     __tablename__="users"
@@ -51,4 +52,11 @@ class Booking(Base):
     conference_link: Mapped[str |  None] = mapped_column(Text, nullable=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    
+    __table_args__=(
+        Index(
+            "uq_booking_slot_active",
+            "slot_id",
+            unique=True,
+            postgresql_where=text("status = 'active'"),
+        ),
+    )

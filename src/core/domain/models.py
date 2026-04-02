@@ -41,5 +41,5 @@ class Booking:
     user_id:UUID
     status: str
     conference_link:Optional[str]
-    creared_str:Optional[datetime]
+    creared_at:Optional[datetime]
 
