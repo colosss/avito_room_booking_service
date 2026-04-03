@@ -1,6 +1,12 @@
-from datetime import datetime, timedelta, timezone, date
+from datetime import datetime, timedelta, timezone, date as date_type
 from uuid import UUID, uuid4
 from src.core.domain.models import Slot, Schedule
+from src.core.repositories import(
+    AbstractSlotRepository,
+    AbstractScheduleRepository,
+    AbstractRoomRepository,
+)
+from src.infrastructure.database.repositories.slots import make_slot_uuid
 
 def generate_slots_for_date(schedule: Schedule, target_date: date)->list[Slot]:
     if target_date.isoweekday() not in schedule.days_of_week:
@@ -19,3 +25,21 @@ def generate_slots_for_date(schedule: Schedule, target_date: date)->list[Slot]:
         slot_start=slot_end
     return slots
 
+class GetAvailableSlotsUseCase:
+    def __init__(self, room_repo: AbstractRoomRepository, schedule_repo: AbstractScheduleRepository, slot_repo: AbstractSlotRepository):
+        self._rooms=room_repo
+        self._schedules=schedule_repo
+        self._slots=slot_repo
+
+    async def execute(self, room_id:UUID, target_date:date_type)->list[Slot]:
+        room=await self._rooms.get_by_id(room_id)
+        if not room:
+            raise ValueError("ROOM_NOT_FOUND")
+        schedule = await self._schedules.get_by_room_id(room_id)
+        if not schedule:
+            return []
+        generated = generate_slots_for_date(schedule, target_date)
+        if generated:
+            await self._slots.bulk_upsert(generated)
+        return await self._slots.get_available_by_room_and_date(room_id, target_date)
+    

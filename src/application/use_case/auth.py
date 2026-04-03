@@ -26,3 +26,16 @@ class RegisterUseCase:
             raise ValueError("EMAIL_ALREADY_EXISTS")
         hashed=pwd_context.hash(password)
         return await self._users.create(email=email, role=role, hashed_password=hashed)
+    
+class LoginUseCase:
+    def __init__(self, user_repo:AbstractUserRepository):
+        self._users=user_repo
+
+    async def execute(self, email: str, password: str)->str:
+        user=await self._users.get_by_email(email=email)
+        if not user or not user.hashed_password:
+            raise ValueError("INVALID_CREDENTIALS")
+        if not pwd_context.verify(password, user.hashed_password):
+            raise ValueError("INVALID_CREDENTIALS")
+        return create_token(user_id=str(user.id), role=user.role)
+

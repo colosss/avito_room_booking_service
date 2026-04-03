@@ -6,29 +6,28 @@ from src.core.domain.models import User
 from typing import Optional
 from uuid import UUID
 import uuid
+from src.application.mappers.users import users_db_to_domain
 
 class UserRepository(AbstractUserRepository):
     def __init__(self, session:AsyncSession):
         self.session = session
 
-    def _to_domain(self, u: UserModel)->User:
-        return User(id=u.id, email=u.email, role=u.role, hashed_password=u.hashed_password, created_at=u.created_at)
     
     async def get_by_id(self, user_id: UUID)->Optional[User]:
         u=await self.session.get(UserModel, user_id)
-        return self._to_domain(u) if u else None
+        return users_db_to_domain(u=u) if u else None
     
     async def get_by_email(self, email: str)->Optional[User]:
         result=await self.session.execute(select(UserModel).where(UserModel.email==email))
         u=result.scalar_one_or_none()
-        return self._to_domain(u) if u else None
+        return users_db_to_domain(u=u) if u else None
     
     async def create(self, email: str, role: str, hashed_password: Optional[str])->User:
         u=UserModel(id=uuid.uuid4(), email=email, role=role, hashed_password=hashed_password)
         self.session.add(u)
         await self.session.commit()
         await self.session.refresh(u)
-        return self._to_domain(u) if u else None
+        return users_db_to_domain(u=u) if u else None
     
     async def get_or_create_dummy(self, user_id:UUID, role:str)->User:
         u=await self.session.get(UserModel, user_id)
@@ -39,4 +38,4 @@ class UserRepository(AbstractUserRepository):
         self.session.add(u)
         await self.session.commit()
         await self.session.refresh(u)
-        return self._to_domain(u)
+        return users_db_to_domain(u=u)
