@@ -1,12 +1,18 @@
 from dotenv import load_dotenv
-load_dotenv
+load_dotenv()
 
 import uvicorn
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from src.infrastructure.database.db_helper import db_helper
 from src.infrastructure.database.base import Base
-# from src.interfaces.api import
+from src.interfaces.api import (
+    auth,
+    rooms,
+    shcedules,
+    slots,
+    bookings
+)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -14,8 +20,12 @@ async def lifespan(app: FastAPI):
         await conn.run_sync(Base.metadata.create_all)
     yield
 
-app = FastAPI(lifespan=lifespan)
-# app.include_router(post)
+app = FastAPI(title="Room Booking Service" ,lifespan=lifespan)
+app.include_router(auth.router)
+app.include_router(rooms.router)
+app.include_router(shcedules.router)
+app.include_router(slots.router)
+app.include_router(bookings.router)
 
 if __name__ == "__main__":
-    uvicorn.run("cmd.main:app", reload=True)
+    uvicorn.run("run.main:app", host="0.0.0.0", port=8080, reload=True)

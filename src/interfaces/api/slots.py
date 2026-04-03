@@ -24,7 +24,7 @@ async def list_slots(
             room_repo=RoomRepository(session=session),
             schedule_repo=ScheduleRepository(session=session),
             slot_repo=SlotRepository(session=session),
-        )
+        ).execute(room_id=roomId, target_date=date)
     except ValueError as e:
         code = str(e).split(":")[0]
         raise HTTPException(404, detail={"error": {"code": code, "message": str(e)}})

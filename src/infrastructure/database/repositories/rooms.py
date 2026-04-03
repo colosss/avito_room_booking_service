@@ -21,7 +21,7 @@ class RoomRepository(AbstractRoomRepository):
     
     async def get_list(self)->Sequence[Room]:
         result=await self.session.execute(select(RoomModel))
-        rooms=result.scalar().all()
+        rooms=result.scalars().all()
         return [rooms_db_to_domain(r) for r in rooms]
     
     async def get_by_id(self, room_id: UUID)->Optional[Room]:

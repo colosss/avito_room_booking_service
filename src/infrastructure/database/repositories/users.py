@@ -32,7 +32,7 @@ class UserRepository(AbstractUserRepository):
     async def get_or_create_dummy(self, user_id:UUID, role:str)->User:
         u=await self.session.get(UserModel, user_id)
         if u:
-            return self._to_domain(u)
+            return users_db_to_domain(u)
         
         u=UserModel(id=user_id, email=f"dummy_{role}@system.local",role=role, hashed_password=None)
         self.session.add(u)

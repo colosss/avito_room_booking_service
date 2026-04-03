@@ -38,8 +38,8 @@ class SlotRepository(AbstractSlotRepository):
             .where(BookingModel.status == "active")
             .scalar_subquery()
         )
-        day_start = date.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=timezone.utc)
-        day_end = date.replace(hour=23, minute=59, second=59, microsecond=999999, tzinfo=timezone.utc)
+        day_start = datetime(date.year, date.month, date.day, 0, 0, 0, tzinfo=timezone.utc)
+        day_end = datetime(date.year, date.month, date.day, 23, 59, 59, tzinfo=timezone.utc)
         stmt = (
             select(SlotModel)
             .where(

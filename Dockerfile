@@ -1,4 +1,4 @@
-FROM python:3.14-slim
+FROM python:3.13-slim
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
@@ -12,4 +12,4 @@ RUN poetry config virtualenvs.create false && poetry install --no-root --without
 
 COPY . .
 
-CMD ["poetry", "run", "uvicorn", "run.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["poetry", "run", "uvicorn", "run.main:app", "--host", "0.0.0.0", "--port", "8080"]

@@ -15,7 +15,7 @@ def rooms_db_to_domain(r: RoomDb)->RoomDomain:
     return RoomDomain(
         id=r.id,
         name=r.name,
-        description=r.descriotion,
+        description=r.description,
         capacity=r.capacity,
         created_at=r.created_at,
     )

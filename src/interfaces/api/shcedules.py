@@ -10,7 +10,7 @@ from uuid import UUID
 
 router=APIRouter(tags=["Schedule"])
 
-@router.post("/rooms/{roomsId}/schedule/create", response_model=dict, status_code=201)
+@router.post("/rooms/{roomId}/schedule/create", response_model=dict, status_code=201)
 async def create_schedule(
     roomId:UUID,
     body: ScheduleCreateDTO,

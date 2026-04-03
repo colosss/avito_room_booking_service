@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, field_validatore
+from pydantic import BaseModel, ConfigDict, field_validator
 from uuid import UUID
 
 class ScheduleCreateDTO(BaseModel):
@@ -6,7 +6,7 @@ class ScheduleCreateDTO(BaseModel):
     startTime: str
     endTime: str
     
-    @field_validatore("daysOfWeek")
+    @field_validator("daysOfWeek")
     @classmethod
     def validate_days(cls, v:list[int])->list[int]:
         if not v or any(d<1 or d>7 for d in v):

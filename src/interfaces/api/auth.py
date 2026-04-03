@@ -25,7 +25,7 @@ async def dummy_login(
     body: DummyLogintDTO,
     session=Depends(db_helper.session_dependency)):
     try:
-        token=await DummyLoginUseCase(UserRepository(session=session).execute(body.role))
+        token=await DummyLoginUseCase(UserRepository(session=session)).execute(body.role)
     except ValueError as e:
         raise HTTPException(400, detail={"error": {"code": "INVALID_REQUEST", "message": str(e)}})
     return TokenSchema(token=token)

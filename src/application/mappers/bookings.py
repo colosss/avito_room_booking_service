@@ -8,7 +8,8 @@ def bookings_domain_to_dto(b: BookingDomain)->BookingSchema:
         slotId=b.slot_id,
         userId=b.user_id,
         conferenceLink=b.conference_link,
-        createdAt=b.creared_at,
+        createdAt=b.created_at,
+        status=b.status
     )
 
 def bookings_db_to_domain(b: BookingDb)->BookingDomain:
@@ -17,5 +18,7 @@ def bookings_db_to_domain(b: BookingDb)->BookingDomain:
         slot_id=b.slot_id,
         user_id=b.user_id,
         conference_link=b.conference_link,
-        creared_at=b.created_at,
+        created_at=b.created_at,
+        status=b.status,
+
     )

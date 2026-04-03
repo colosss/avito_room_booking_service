@@ -53,7 +53,7 @@ async def my_bookings(
     return MyBookingListSchema(bookings=[bookings_domain_to_dto(b) for b in bookings])
 
 
-@router.get("/bookings/list", response_model=MyBookingListSchema)
+@router.get("/bookings/list", response_model=BookingListSchema)
 async def list_bookings(
     page: int=Query(default=1, ge=1),
     pageSize: int=Query(default=20, ge=1, le=100),
@@ -62,6 +62,25 @@ async def list_bookings(
 
     bookings, total = await ListAllBookingUseCase(
         booking_repo=BookingRepository(session=session)
-        ).execute(
-            page: 
+        ).execute(page=page, page_size=pageSize)
+    return BookingListSchema(
+        bookings=[bookings_domain_to_dto(b) for b in bookings],
+        pagination=PaginationSchema(page=page, pageSize=pageSize, total=total),
+    )
+
+
+@router.post("/bookings/{bookingId}/cancel", response_model=dict)
+async def cancel_booking(
+    bookingId: UUID,
+    current_user: dict=Depends(require_user),
+    session=Depends(db_helper.session_dependency)):
+
+    try:
+        booking=await CancelBookingUseCase(BookingRepository(session=session)).execute(
+            booking_id=bookingId, user_id=UUID(current_user["user_id"])
         )
+    except ValueError as e:
+        code=str(e)
+        status_map = {"BOOKING_NOT_FOUND": 404, "FORBIDDEN": 403}
+        raise HTTPException(status_map.get(code, 400), detail={"error": {"code": code, "message": code.lower()}})
+    return {"booking": bookings_domain_to_dto(booking).model_dump()}

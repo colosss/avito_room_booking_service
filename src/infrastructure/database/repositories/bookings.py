@@ -14,7 +14,7 @@ class BookingRepository(AbstractBookingRepository):
         self.session=session
 
     async def create(self, slot_id: UUID, user_id: UUID, conference_link: Optional[str])->Booking:
-        b=BookingModel(id=uuid.uuid4, slot_id=slot_id, user_id=user_id, status="active", conference_link=conference_link)
+        b=BookingModel(id=uuid.uuid4(), slot_id=slot_id, user_id=user_id, status="active", conference_link=conference_link)
         self.session.add(b)
         await self.session.commit()
         await self.session.refresh(b)
@@ -35,7 +35,7 @@ class BookingRepository(AbstractBookingRepository):
         result=await self.session.execute(
             select(BookingModel).where(
                 BookingModel.slot_id==slot_id,
-                BookingModel.status == "acrive",
+                BookingModel.status == "active",
             )
         )
         b=result.scalar_one_or_none()
@@ -52,7 +52,7 @@ class BookingRepository(AbstractBookingRepository):
             )
             .order_by(SlotModel.start)
         )
-        return [bookings_db_to_domain(b=b) for b in result.scalar().all()]
+        return [bookings_db_to_domain(b=b) for b in result.scalars().all()]
     
     async def get_all(self, page: int, page_size: int)-> tuple[Sequence[Booking]]:
         offset=(page-1)*page_size
@@ -61,4 +61,4 @@ class BookingRepository(AbstractBookingRepository):
         result=await self.session.execute(
             select(BookingModel).offset(offset=offset).limit(page_size)
         )
-        return[bookings_db_to_domain(b=b) for b in result.scalar().all()], total
+        return[bookings_db_to_domain(b=b) for b in result.scalars().all()], total

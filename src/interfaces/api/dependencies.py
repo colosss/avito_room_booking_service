@@ -1,6 +1,6 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from src.infrastructure.auth.jwt import decoe_token
+from src.infrastructure.auth.jwt import decode_token
 
 bearer = HTTPBearer()
 
@@ -8,7 +8,7 @@ def get_current_user(
         credentials: HTTPAuthorizationCredentials=Depends(bearer)
 )->dict:
     try:
-        payload=decoe_token(credentials.credentials)
+        payload=decode_token(credentials.credentials)
         return{"user_id": payload["user_id"], "role": payload["role"]}
     except ValueError:
         raise HTTPException(
