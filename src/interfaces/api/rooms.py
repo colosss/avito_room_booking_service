@@ -9,12 +9,13 @@ from src.application.use_case.rooms import (
 from src.application.dto.rooms import (
     RoomCreateDTO,
     RoomListShema,
+    RoomSchema,
 )
 from src.application.mappers.rooms import rooms_domain_to_dto
 
 router=APIRouter(tags=["Rooms"])
 
-@router.post("/rooms/create", response_model=dict, status_code=201)
+@router.post("/rooms/create", response_model=RoomSchema, status_code=201)
 async def create_room(
     body: RoomCreateDTO,
     current_user:dict=Depends(require_admin),
@@ -25,7 +26,7 @@ async def create_room(
         body.description,
         body.capacity,
     )
-    return {"room": rooms_domain_to_dto(room).model_dump()}
+    return rooms_domain_to_dto(room)
 
 @router.get("/rooms/list", response_model=RoomListShema)
 async def list_rooms(

@@ -27,7 +27,7 @@ class UserRepository(AbstractUserRepository):
         self.session.add(u)
         await self.session.commit()
         await self.session.refresh(u)
-        return users_db_to_domain(u=u) if u else None
+        return users_db_to_domain(u=u)
     
     async def get_or_create_dummy(self, user_id:UUID, role:str)->User:
         u=await self.session.get(UserModel, user_id)

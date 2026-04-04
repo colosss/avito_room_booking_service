@@ -4,13 +4,13 @@ from src.infrastructure.database.db_helper import db_helper
 from src.infrastructure.database.repositories.schedules import ScheduleRepository
 from src.infrastructure.database.repositories.rooms import RoomRepository
 from src.application.use_case.schedule import CreateScheduleUseCase
-from src.application.dto.schedule import ScheduleCreateDTO
+from src.application.dto.schedule import ScheduleCreateDTO, ScheduleSchema
 from src.application.mappers.schedules import schedules_domain_to_dto
 from uuid import UUID
 
 router=APIRouter(tags=["Schedule"])
 
-@router.post("/rooms/{roomId}/schedule/create", response_model=dict, status_code=201)
+@router.post("/rooms/{roomId}/schedule/create", response_model=ScheduleSchema, status_code=201)
 async def create_schedule(
     roomId:UUID,
     body: ScheduleCreateDTO,
@@ -32,4 +32,4 @@ async def create_schedule(
         status_map = {"ROOM_NOT_FOUND": 404, "SCHEDULE_EXISTS": 409}
         raise HTTPException(status_map.get(code, 400),
         detail={"error": {"code": code, "message": str(e)}})
-    return {"schedule": schedules_domain_to_dto(schedule).model_dump()}
+    return schedules_domain_to_dto(schedule)

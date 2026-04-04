@@ -39,13 +39,14 @@ async def register(
         user=await RegisterUseCase(UserRepository(session=session)).execute(
             body.email,
             body.password,
+            body.role,
         )
     except ValueError as e:
-        raise HTTPException(409, detail={"error": {"code": str(e), "message": str(e)}})
+        raise HTTPException(400, detail={"error": {"code": "INVALID_REQUEST", "message": str(e)}})
     return UserSchema(id=str(user.id), email=user.email, role=user.role)
 
 @router.post("/login", response_model=TokenSchema)
-async def loggin(
+async def login(
     body: LoginDTO,
     session=Depends(db_helper.session_dependency)):
     try:
@@ -54,5 +55,8 @@ async def loggin(
             body.password,
         )
     except ValueError:
-        raise HTTPException(401, detail={"error": {"code": "INVALID_CREDENTIALS","message": "invalid credentials"}})
+        raise HTTPException(
+            status_code=401,
+            detail={"error": {"code": "UNAUTHORIZED","message": "invalid credentials"}}
+        )
     return TokenSchema(token=token)

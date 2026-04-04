@@ -1,6 +1,6 @@
 from src.application.dto.schedule import ScheduleSchema
 from src.core.domain.models import Schedule as ScheduleDomain
-from src.infrastructure.database.models import Schedule as SchdeduleDb
+from src.infrastructure.database.models import Schedule as ScheduleDb
 
 def schedules_domain_to_dto(s: ScheduleDomain)->ScheduleSchema:
     return ScheduleSchema(
@@ -11,7 +11,7 @@ def schedules_domain_to_dto(s: ScheduleDomain)->ScheduleSchema:
         endTime=s.end_time,
     )
 
-def schedules_db_to_domain(s: SchdeduleDb)->ScheduleDomain:
+def schedules_db_to_domain(s: ScheduleDb)->ScheduleDomain:
     return ScheduleDomain(
         id=s.id,
         room_id=s.room_id,

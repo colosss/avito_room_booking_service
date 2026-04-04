@@ -3,9 +3,10 @@ from uuid import UUID
 from src.core.repositories import (
     AbstractBookingRepository,
     AbstractSlotRepository,
-    AbstractScheduleRepository,
 )
+from src.infrastructure.cache.redis_client import invalidate_slots_cache
 import uuid
+
 
 class CreateBookingUseCase:
     def __init__(self, bookint_repo: AbstractBookingRepository, slot_repo: AbstractSlotRepository):
@@ -24,25 +25,34 @@ class CreateBookingUseCase:
         conference_link=None
         if create_conference_link:
             conference_link=await self._get_conference_link()
-        return await self._bookings.create(slot_id=slot_id, user_id=user_id, conference_link=conference_link)
-    
+        booking = await self._bookings.create(slot_id=slot_id, user_id=user_id, conference_link=conference_link)
+        # Инвалидируем кэш слотов для этой комнаты и даты
+        await invalidate_slots_cache(slot.room_id, slot.start.date())
+        return booking
+
     async def _get_conference_link(self)->str:
         return f"https://conference.exemple.com/room/{uuid.uuid4()}"
     
 class CancelBookingUseCase:
-    def __init__(self, booking_repo:AbstractBookingRepository):
-        self._repo=booking_repo
+    def __init__(self, booking_repo: AbstractBookingRepository, slot_repo: AbstractSlotRepository):
+        self._repo = booking_repo
+        self._slots = slot_repo
 
     async def execute(self, booking_id: UUID, user_id: UUID):
-        booking=await self._repo.get_by_id(booking_id=booking_id)
+        booking = await self._repo.get_by_id(booking_id=booking_id)
         if not booking:
             raise ValueError("BOOKING_NOT_FOUND")
         if str(booking.user_id) != str(user_id):
             raise ValueError("FORBIDDEN")
         if booking.status == "cancelled":
             return booking
-        return await self._repo.cancel(booking_id=booking_id)
-    
+        cancelled = await self._repo.cancel(booking_id=booking_id)
+        slot = await self._slots.get_by_id(slot_id=booking.slot_id)
+        if slot:
+            await invalidate_slots_cache(slot.room_id, slot.start.date())
+        return cancelled
+
+
 class GetMyBookingUseCase:
     def __init__(self, booking_repo: AbstractBookingRepository):
         self._repo=booking_repo

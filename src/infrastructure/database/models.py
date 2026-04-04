@@ -17,12 +17,12 @@ class Room(Base):
     __tablename__ = "rooms"
     id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(String(200))
-    description: Mapped[str | None] = mapped_column(Text, nullable=True)  # исправлено: было descriotion
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
     capacity: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 class Schedule(Base):
-    __tablename__ = "schedule"
+    __tablename__ = "schedules"
     id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     room_id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), ForeignKey("rooms.id"), unique=True, index=True)
     days_of_week: Mapped[list[int]] = mapped_column(ARRAY(Integer))

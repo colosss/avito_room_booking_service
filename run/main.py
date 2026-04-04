@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+
 load_dotenv()
 
 import uvicorn
@@ -9,9 +10,9 @@ from src.infrastructure.database.base import Base
 from src.interfaces.api import (
     auth,
     rooms,
-    shcedules,
     slots,
-    bookings
+    bookings,
+    schedules
 )
 
 @asynccontextmanager
@@ -23,7 +24,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Room Booking Service" ,lifespan=lifespan)
 app.include_router(auth.router)
 app.include_router(rooms.router)
-app.include_router(shcedules.router)
+app.include_router(schedules.router)
 app.include_router(slots.router)
 app.include_router(bookings.router)
 

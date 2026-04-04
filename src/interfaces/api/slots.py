@@ -27,5 +27,6 @@ async def list_slots(
         ).execute(room_id=roomId, target_date=date)
     except ValueError as e:
         code = str(e).split(":")[0]
-        raise HTTPException(404, detail={"error": {"code": code, "message": str(e)}})
+        status_map = {"ROOM_NOT_FOUND": 404}
+        raise HTTPException(status_map.get(code, 400), detail={"error": {"code": code, "message": str(e)}})
     return SlotListSchema(slots=[slots_domain_to_dto(s) for s in slots])

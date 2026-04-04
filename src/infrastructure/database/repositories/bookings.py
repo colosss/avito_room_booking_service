@@ -26,6 +26,8 @@ class BookingRepository(AbstractBookingRepository):
     
     async def cancel(self, booking_id: UUID)->Booking:
         b=await self.session.get(BookingModel, booking_id)
+        if b is None:
+            return None
         b.status="cancelled"
         await self.session.commit()
         await self.session.refresh(b)

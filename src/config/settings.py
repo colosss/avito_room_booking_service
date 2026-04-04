@@ -18,4 +18,12 @@ class Settings(BaseSettings):
     def db(self) -> DbSettings:
         return DbSettings()
 
+    @property
+    def database_url(self) -> str:
+        return f"postgresql+asyncpg://{self.db.DB_USER}:{self.db.DB_PASSWORD}@{self.db.DB_HOST}:{self.db.DB_PORT}/{self.db.DB_NAME}"
+
+    @property
+    def sync_database_url(self) -> str:
+        return f"postgresql://{self.db.DB_USER}:{self.db.DB_PASSWORD}@{self.db.DB_HOST}:{self.db.DB_PORT}/{self.db.DB_NAME}"
+
 settings = Settings()

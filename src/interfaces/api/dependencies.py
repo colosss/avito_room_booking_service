@@ -28,6 +28,6 @@ def require_user(current_user: dict=Depends(get_current_user))->dict:
     if current_user["role"]!="user":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail={"error": {"code": "FORBIDDEN", "message": "admin role required"}},
+            detail={"error": {"code": "FORBIDDEN", "message": "user role required"}},
         )
     return current_user

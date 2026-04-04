@@ -23,7 +23,7 @@ class RegisterUseCase:
     async def execute(self, email: str, password: str, role: str = "user"):
         existing = await self._users.get_by_email(email=email)
         if existing:
-            raise ValueError("EMAIL_ALREADY_EXISTS")
+            raise ValueError("INVALID_REQUEST:email already exists")
         hashed=pwd_context.hash(password)
         return await self._users.create(email=email, role=role, hashed_password=hashed)
     
@@ -34,8 +34,8 @@ class LoginUseCase:
     async def execute(self, email: str, password: str)->str:
         user=await self._users.get_by_email(email=email)
         if not user or not user.hashed_password:
-            raise ValueError("INVALID_CREDENTIALS")
+            raise ValueError("UNAUTHORIZED:invalid credentials")
         if not pwd_context.verify(password, user.hashed_password):
-            raise ValueError("INVALID_CREDENTIALS")
+            raise ValueError("UNAUTHORIZED:invalid credentials")
         return create_token(user_id=str(user.id), role=user.role)
 

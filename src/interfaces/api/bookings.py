@@ -21,7 +21,7 @@ from uuid import UUID
 
 router=APIRouter(tags=["Bookings"])
 
-@router.post("/bookings/create", response_model=dict, status_code=201)
+@router.post("/bookings/create", response_model=BookingSchema, status_code=201)
 async def create_booking(
     body: BookingCreateDTO,
     current_user: dict=Depends(require_user),
@@ -40,7 +40,7 @@ async def create_booking(
         code = str(e).split(":")[0]
         status_map = {"SLOT_NOT_FOUND": 404, "SLOT_ALREADY_BOOKED": 409, "INVALID_REQUEST": 400}
         raise HTTPException(status_map.get(code, 400), detail={"error": {"code": code, "message": str(e)}})
-    return {"booking": bookings_domain_to_dto(booking).model_dump()}
+    return bookings_domain_to_dto(booking)
 
 @router.get("/bookings/my", response_model=MyBookingListSchema)
 async def my_bookings(
@@ -69,18 +69,29 @@ async def list_bookings(
     )
 
 
-@router.post("/bookings/{bookingId}/cancel", response_model=dict)
+@router.post("/bookings/{bookingId}/cancel", response_model=BookingSchema)
 async def cancel_booking(
     bookingId: UUID,
     current_user: dict=Depends(require_user),
     session=Depends(db_helper.session_dependency)):
 
     try:
-        booking=await CancelBookingUseCase(BookingRepository(session=session)).execute(
+        booking=await CancelBookingUseCase(
+            BookingRepository(session=session),
+            slot_repo=SlotRepository(session=session)).execute(
             booking_id=bookingId, user_id=UUID(current_user["user_id"])
         )
+        if booking is None:
+            raise HTTPException(404, detail={"error": {"code": "BOOKING_NOT_FOUND", "message": "booking not found"}})
     except ValueError as e:
         code=str(e)
+        messages = {
+            "BOOKING_NOT_FOUND": "booking not found",
+            "FORBIDDEN": "cannot cancel another user's booking",
+        }
         status_map = {"BOOKING_NOT_FOUND": 404, "FORBIDDEN": 403}
-        raise HTTPException(status_map.get(code, 400), detail={"error": {"code": code, "message": code.lower()}})
-    return {"booking": bookings_domain_to_dto(booking).model_dump()}
+        raise HTTPException(
+            status_map.get(code, 400), 
+            detail={"error": {"code": code, "message": messages.get(code, code.lower())}},
+        )
+    return bookings_domain_to_dto(booking)

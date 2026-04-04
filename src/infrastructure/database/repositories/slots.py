@@ -7,7 +7,7 @@ from src.core.domain.models import Slot
 from typing import Optional, Sequence
 from uuid import UUID
 import uuid as uuid_module
-from datetime import datetime, timezone, date as date_type
+from datetime import datetime, timezone, date as date_type, timedelta
 from src.application.mappers.slots import slots_db_to_domain, slots_domain_to_list
 
 SLOT_NAMESPACE=UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
@@ -39,7 +39,7 @@ class SlotRepository(AbstractSlotRepository):
             .scalar_subquery()
         )
         day_start = datetime(date.year, date.month, date.day, 0, 0, 0, tzinfo=timezone.utc)
-        day_end = datetime(date.year, date.month, date.day, 23, 59, 59, tzinfo=timezone.utc)
+        day_end = day_start + timedelta(days=1) 
         stmt = (
             select(SlotModel)
             .where(

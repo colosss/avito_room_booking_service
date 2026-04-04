@@ -6,6 +6,7 @@ class DummyLogintDTO(BaseModel):
 class RegisterDTO(BaseModel):
     email: str
     password: str
+    role:str = "user"
 
 class LoginDTO(BaseModel):
     email: str
