@@ -32,6 +32,8 @@ services:
     restart: always
     ports:
       - "8080:8080"
+    volumes:
+    - .:/app
     environment:
       DB_HOST: ${DB_HOST:-db}
       DB_PORT: ${DB_PORT:-5432}
