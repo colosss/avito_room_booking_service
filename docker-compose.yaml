@@ -55,8 +55,6 @@ services:
       - "8080:8080"
     volumes:
     - .:/app
-    env_file:
-      - .env
     environment:
       DB_HOST: ${DB_HOST:-db}
       DB_PORT: ${DB_PORT:-5432}
@@ -77,8 +75,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.test
-    env_file:
-      - .test.env
     environment:
       DB_HOST: test-db
       DB_PORT: 5432
