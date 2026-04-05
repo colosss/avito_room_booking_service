@@ -9,7 +9,7 @@ class Settings(BaseSettings):
         case_sensitive=False,
     )
 
-    JWT_SECRET_KEY: str
+    JWT_SECRET_KEY: str = "qylI_uuIlf0xvBaB39ElGWv-ulGpQmxL8_c0c8aAiEY"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     MODE: str = "normal"
