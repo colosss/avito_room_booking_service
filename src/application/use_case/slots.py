@@ -44,6 +44,17 @@ class GetAvailableSlotsUseCase:
 
     def _cache_key(self, room_id: UUID, date: date_type) -> str:
         return f"slots:{room_id}:{date.isoformat()}"
+    
+    def _deserialize_slots(self, raw: list[dict]) -> list[Slot]:
+        return [
+            Slot(
+                id=UUID(s["id"]),
+                room_id=UUID(s["roomId"]),
+                start=datetime.fromisoformat(s["start"]),
+                end=datetime.fromisoformat(s["end"]),
+            )
+            for s in raw
+        ]
 
     async def execute(self, room_id: UUID, target_date: date_type) -> list[Slot]:
         redis = await get_redis()
@@ -51,40 +62,37 @@ class GetAvailableSlotsUseCase:
         cached = await redis.get(key)
 
         if cached is not None:
-            raw = json.loads(cached)
-            return [
-                Slot(
-                    id=UUID(s["id"]),
-                    room_id=UUID(s["roomId"]),
-                    start=datetime.fromisoformat(s["start"]),
-                    end=datetime.fromisoformat(s["end"]),
-                )
-                for s in raw
+            return self._deserialize_slots(json.loads(cached))
+        
+        async with redis.lock(f"lock:slots:{room_id}:{target_date.isoformat()}", timeout=10):
+            cached = await redis.get(key)
+            if cached is not None:
+                return self._deserialize_slots(json.loads(cached))
+            
+            room = await self._rooms.get_by_id(room_id)
+            if not room:
+                raise ValueError("ROOM_NOT_FOUND")
+
+            schedule = await self._schedules.get_by_room_id(room_id)
+            if not schedule:
+                await redis.setex(key, SLOTS_CACHE_TTL, json.dumps([]))
+                return []
+
+            generated = generate_slots_for_date(schedule, target_date)
+            if generated:
+                await self._slots.bulk_upsert(generated)
+
+            slots = await self._slots.get_available_by_room_and_date(room_id, target_date)
+
+            serialized = [
+                {
+                    "id": str(s.id),
+                    "roomId": str(s.room_id),
+                    "start": s.start.isoformat(),
+                    "end": s.end.isoformat(),
+                }
+                for s in slots
             ]
 
-        room = await self._rooms.get_by_id(room_id)
-        if not room:
-            raise ValueError("ROOM_NOT_FOUND")
-
-        schedule = await self._schedules.get_by_room_id(room_id)
-        if not schedule:
-            await redis.setex(key, SLOTS_CACHE_TTL, json.dumps([]))
-            return []
-
-        generated = generate_slots_for_date(schedule, target_date)
-        if generated:
-            await self._slots.bulk_upsert(generated)
-
-        slots = await self._slots.get_available_by_room_and_date(room_id, target_date)
-
-        serialized = [
-            {
-                "id": str(s.id),
-                "roomId": str(s.room_id),
-                "start": s.start.isoformat(),
-                "end": s.end.isoformat(),
-            }
-            for s in slots
-        ]
-        await redis.setex(key, SLOTS_CACHE_TTL, json.dumps(serialized))
-        return slots
+            await redis.setex(key, SLOTS_CACHE_TTL, json.dumps(serialized))
+            return slots
